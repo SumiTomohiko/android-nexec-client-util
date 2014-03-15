@@ -1,5 +1,12 @@
 package jp.gr.java_conf.neko_daisuki.android.nexec.client.util;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.PrintWriter;
+import java.io.Reader;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
@@ -23,6 +30,28 @@ public class NexecClient {
 
         public static SessionId getSessionId(Intent data) {
             return new SessionId(data.getStringExtra("SESSION_ID"));
+        }
+
+        public static SessionId readSessionId(InputStream in) throws IOException {
+            try {
+                Reader reader = new InputStreamReader(in);
+                String line = new BufferedReader(reader).readLine();
+                return line != null ? new SessionId(line) : SessionId.NULL;
+            }
+            finally {
+                in.close();
+            }
+        }
+
+        public static void writeSessionId(OutputStream out,
+                                          SessionId sessionId) throws IOException {
+            PrintWriter writer = new PrintWriter(out);
+            try {
+                writer.print(sessionId.toString());
+            }
+            finally {
+                writer.close();
+            }
         }
     }
 
