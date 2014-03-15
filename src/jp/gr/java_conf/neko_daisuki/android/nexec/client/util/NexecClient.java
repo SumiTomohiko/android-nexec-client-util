@@ -53,10 +53,11 @@ public class NexecClient {
         public String host;
         public int port = 57005;
         public String[] args;
+        public String[] files;
         public int xWidth;
         public int xHeight;
+
         private List<Pair> environment;
-        public String[] files;
         private List<Link> links;
 
         public Settings() {
