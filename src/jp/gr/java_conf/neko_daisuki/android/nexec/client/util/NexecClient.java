@@ -51,7 +51,7 @@ public class NexecClient {
         }
 
         public String host;
-        public int port;
+        public int port = 57005;
         public String[] args;
         public int xWidth;
         public int xHeight;
