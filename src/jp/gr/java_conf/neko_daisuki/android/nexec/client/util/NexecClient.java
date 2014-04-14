@@ -9,6 +9,7 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.graphics.Bitmap;
 import android.os.IBinder;
 import android.os.RemoteException;
 import android.util.Log;
@@ -345,6 +346,16 @@ public class NexecClient {
     public void quit() {
         mQuitProc.run();
         changeStateToDisconnected();
+    }
+
+    public Bitmap xDraw() {
+        try {
+            return mService.xDraw(mSessionId);
+        }
+        catch (RemoteException e) {
+            mOnErrorListener.onError(this, e);
+        }
+        return null;
     }
 
     private String getClassName(String name) {
