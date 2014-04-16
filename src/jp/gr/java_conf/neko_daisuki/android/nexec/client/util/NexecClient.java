@@ -201,12 +201,42 @@ public class NexecClient {
             mConnectedProc.run();
             mDisconnectProc = DISCONNECT_PROC;
             mQuitProc = QUIT_PROC;
+            mXDrawProc = X_DRAW_PROC;
 
             Log.i(LOG_TAG, "Connected with the service.");
         }
 
         public void onServiceDisconnected(ComponentName className) {
             mService = null;
+        }
+    }
+
+    private interface XDrawProc {
+
+        public static class Nop implements XDrawProc {
+
+            @Override
+            public Bitmap xDraw() {
+                return null;
+            }
+        }
+
+        public static XDrawProc NOP = new Nop();
+
+        public Bitmap xDraw();
+    }
+
+    private class TrueXDrawProc implements XDrawProc {
+
+        @Override
+        public Bitmap xDraw() {
+            try {
+                return mService.xDraw(mSessionId);
+            }
+            catch (RemoteException e) {
+                mOnErrorListener.onError(NexecClient.this, e);
+            }
+            return null;
         }
     }
 
@@ -251,6 +281,7 @@ public class NexecClient {
 
     private final Runnable DISCONNECT_PROC = new DisconnectProc();
     private final Runnable QUIT_PROC = new QuitProc();
+    private final XDrawProc X_DRAW_PROC = new TrueXDrawProc();
     private final ConnectedProc EXECUTING_CONNECTED_PROC = new ExecutingConnectedProc();
     private final ConnectedProc CONNECTING_CONNECTED_PROC = new ConnectingConnectedProc();
 
@@ -268,6 +299,7 @@ public class NexecClient {
     private INexecService mService;
     private Runnable mDisconnectProc;
     private Runnable mQuitProc;
+    private XDrawProc mXDrawProc;
     private ConnectedProc mConnectedProc;
     private INexecCallback mCallback = new Callback();
 
@@ -350,13 +382,7 @@ public class NexecClient {
     }
 
     public Bitmap xDraw() {
-        try {
-            return mService.xDraw(mSessionId);
-        }
-        catch (RemoteException e) {
-            mOnErrorListener.onError(this, e);
-        }
-        return null;
+        return mXDrawProc.xDraw();
     }
 
     private String getClassName(String name) {
@@ -397,6 +423,7 @@ public class NexecClient {
         mSessionId = SessionId.NULL;
         mDisconnectProc = NOP;
         mQuitProc = NOP;
+        mXDrawProc = XDrawProc.NOP;
     }
 
     private void unbind() {
