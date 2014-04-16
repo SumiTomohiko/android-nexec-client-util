@@ -153,6 +153,7 @@ public class NexecClient {
         @Override
         public void exit(int status) throws RemoteException {
             mOnExitListener.onExit(NexecClient.this, status);
+            mSessionId = SessionId.NULL;
         }
 
         @Override
