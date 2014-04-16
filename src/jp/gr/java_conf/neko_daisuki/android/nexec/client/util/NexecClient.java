@@ -358,6 +358,15 @@ public class NexecClient {
         return null;
     }
 
+    public void cancel() {
+        try {
+            mService.cancel(mSessionId);
+        }
+        catch (RemoteException e) {
+            mOnErrorListener.onError(this, e);
+        }
+    }
+
     private String getClassName(String name) {
         return String.format("%s.%s", PACKAGE, name);
     }
