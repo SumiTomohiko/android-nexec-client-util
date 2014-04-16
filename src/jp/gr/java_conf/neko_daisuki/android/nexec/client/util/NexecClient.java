@@ -199,9 +199,7 @@ public class NexecClient {
                                        IBinder service) {
             mService = INexecService.Stub.asInterface(service);
             mConnectedProc.run();
-            mDisconnectProc = DISCONNECT_PROC;
-            mQuitProc = QUIT_PROC;
-            mXDrawProc = X_DRAW_PROC;
+            mOperations = TRUE_OPERATIONS;
 
             Log.i(LOG_TAG, "Connected with the service.");
         }
@@ -211,77 +209,82 @@ public class NexecClient {
         }
     }
 
-    private interface XDrawProc {
+    private abstract class Operations {
 
-        public static class Nop implements XDrawProc {
-
-            @Override
-            public Bitmap xDraw() {
-                return null;
+        public void disconnect(SessionId sessionId) {
+            try {
+                doDisconnect(sessionId);
+            }
+            catch (RemoteException e) {
+                mOnErrorListener.onError(NexecClient.this, e);
             }
         }
 
-        public static XDrawProc NOP = new Nop();
-
-        public Bitmap xDraw();
-    }
-
-    private class TrueXDrawProc implements XDrawProc {
-
-        @Override
-        public Bitmap xDraw() {
+        public void quit(SessionId sessionId) {
             try {
-                return mService.xDraw(mSessionId);
+                doQuit(sessionId);
+            }
+            catch (RemoteException e) {
+                mOnErrorListener.onError(NexecClient.this, e);
+            }
+        }
+
+        public Bitmap xDraw(SessionId sessionId) {
+            try {
+                return doXDraw(sessionId);
             }
             catch (RemoteException e) {
                 mOnErrorListener.onError(NexecClient.this, e);
             }
             return null;
         }
+
+        public abstract void doDisconnect(SessionId sessionId) throws RemoteException;
+        public abstract void doQuit(SessionId sessionId) throws RemoteException;
+        public abstract Bitmap doXDraw(SessionId sessionId) throws RemoteException;
     }
 
-    private class DisconnectProc implements Runnable {
+    private class NopOperations extends Operations {
 
         @Override
-        public void run() {
-            try {
-                mService.disconnect(mSessionId);
-            }
-            catch (RemoteException e) {
-                mOnErrorListener.onError(NexecClient.this, e);
-            }
-            unbind();
+        public void doDisconnect(SessionId sessionId) throws RemoteException {
+        }
+
+        @Override
+        public void doQuit(SessionId sessionId) throws RemoteException {
+        }
+
+        @Override
+        public Bitmap doXDraw(SessionId sessionId) throws RemoteException {
+            return null;
         }
     }
 
-    private class QuitProc implements Runnable {
+    private class TrueOperations extends Operations {
 
         @Override
-        public void run() {
-            try {
-                mService.quit(mSessionId);
-            }
-            catch (RemoteException e) {
-                mOnErrorListener.onError(NexecClient.this, e);
-            }
+        public void doDisconnect(SessionId sessionId) throws RemoteException {
+            mService.disconnect(sessionId);
             unbind();
         }
-    }
-
-    private static class Nop implements Runnable {
 
         @Override
-        public void run() {
+        public void doQuit(SessionId sessionId) throws RemoteException {
+            mService.quit(sessionId);
+            unbind();
+        }
+
+        @Override
+        public Bitmap doXDraw(SessionId sessionId) throws RemoteException {
+            return mService.xDraw(sessionId);
         }
     }
 
     private static final String PACKAGE = "jp.gr.java_conf.neko_daisuki.android.nexec.client";
-    private static final Runnable NOP = new Nop();
     private static final String LOG_TAG = "NexecClient";
 
-    private final Runnable DISCONNECT_PROC = new DisconnectProc();
-    private final Runnable QUIT_PROC = new QuitProc();
-    private final XDrawProc X_DRAW_PROC = new TrueXDrawProc();
+    private final Operations TRUE_OPERATIONS = new TrueOperations();
+    private final Operations NOP = new NopOperations();
     private final ConnectedProc EXECUTING_CONNECTED_PROC = new ExecutingConnectedProc();
     private final ConnectedProc CONNECTING_CONNECTED_PROC = new ConnectingConnectedProc();
 
@@ -297,9 +300,7 @@ public class NexecClient {
     private Activity mActivity;
     private Connection mConnection;
     private INexecService mService;
-    private Runnable mDisconnectProc;
-    private Runnable mQuitProc;
-    private XDrawProc mXDrawProc;
+    private Operations mOperations;
     private ConnectedProc mConnectedProc;
     private INexecCallback mCallback = new Callback();
 
@@ -372,17 +373,17 @@ public class NexecClient {
     }
 
     public void disconnect() {
-        mDisconnectProc.run();
+        mOperations.disconnect(mSessionId);
         changeStateToDisconnected();
     }
 
     public void quit() {
-        mQuitProc.run();
+        mOperations.quit(mSessionId);
         changeStateToDisconnected();
     }
 
     public Bitmap xDraw() {
-        return mXDrawProc.xDraw();
+        return mOperations.xDraw(mSessionId);
     }
 
     private String getClassName(String name) {
@@ -421,9 +422,7 @@ public class NexecClient {
 
     private void changeStateToDisconnected() {
         mSessionId = SessionId.NULL;
-        mDisconnectProc = NOP;
-        mQuitProc = NOP;
-        mXDrawProc = XDrawProc.NOP;
+        mOperations = NOP;
     }
 
     private void unbind() {
