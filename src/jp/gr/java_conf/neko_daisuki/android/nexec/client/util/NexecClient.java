@@ -206,6 +206,7 @@ public class NexecClient {
 
         public void onServiceDisconnected(ComponentName className) {
             mService = null;
+            changeStateToDisconnected();
         }
     }
 
