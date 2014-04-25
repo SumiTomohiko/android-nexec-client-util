@@ -240,9 +240,39 @@ public class NexecClient {
             return null;
         }
 
+        public void xMotionNotify(SessionId sessionId, int x, int y) {
+            try {
+                doXMotionNotify(sessionId, x, y);
+            }
+            catch (RemoteException e) {
+                mOnErrorListener.onError(NexecClient.this, e);
+            }
+        }
+
+        public void xLeftButtonRelease(SessionId sessionId) {
+            try {
+                doXLeftButtonRelease(sessionId);
+            }
+            catch (RemoteException e) {
+                mOnErrorListener.onError(NexecClient.this, e);
+            }
+        }
+
+        public void xLeftButtonPress(SessionId sessionId) {
+            try {
+                doXLeftButtonPress(sessionId);
+            }
+            catch (RemoteException e) {
+                mOnErrorListener.onError(NexecClient.this, e);
+            }
+        }
+
         public abstract void doDisconnect(SessionId sessionId) throws RemoteException;
         public abstract void doQuit(SessionId sessionId) throws RemoteException;
         public abstract Bitmap doXDraw(SessionId sessionId) throws RemoteException;
+        public abstract void doXLeftButtonPress(SessionId sessionId) throws RemoteException;
+        public abstract void doXLeftButtonRelease(SessionId sessionId) throws RemoteException;
+        public abstract void doXMotionNotify(SessionId sessionId, int x, int y) throws RemoteException;
     }
 
     private class NopOperations extends Operations {
@@ -258,6 +288,18 @@ public class NexecClient {
         @Override
         public Bitmap doXDraw(SessionId sessionId) throws RemoteException {
             return null;
+        }
+
+        @Override
+        public void doXLeftButtonPress(SessionId sessionId) throws RemoteException {
+        }
+
+        @Override
+        public void doXMotionNotify(SessionId sessionId, int x, int y) throws RemoteException {
+        }
+
+        @Override
+        public void doXLeftButtonRelease(SessionId sessionId) throws RemoteException {
         }
     }
 
@@ -279,13 +321,28 @@ public class NexecClient {
         public Bitmap doXDraw(SessionId sessionId) throws RemoteException {
             return mService.xDraw(sessionId);
         }
+
+        @Override
+        public void doXLeftButtonPress(SessionId sessionId) throws RemoteException {
+            mService.xLeftButtonPress(sessionId);
+        }
+
+        @Override
+        public void doXMotionNotify(SessionId sessionId, int x, int y) throws RemoteException {
+            mService.xMotionNotify(sessionId, x, y);
+        }
+
+        @Override
+        public void doXLeftButtonRelease(SessionId sessionId) throws RemoteException {
+            mService.xLeftButtonRelease(sessionId);
+        }
     }
 
     private static final String PACKAGE = "jp.gr.java_conf.neko_daisuki.android.nexec.client";
     private static final String LOG_TAG = "NexecClient";
 
     private final Operations TRUE_OPERATIONS = new TrueOperations();
-    private final Operations NOP = new NopOperations();
+    private final Operations NOP_OPERATIONS = new NopOperations();
     private final ConnectedProc EXECUTING_CONNECTED_PROC = new ExecutingConnectedProc();
     private final ConnectedProc CONNECTING_CONNECTED_PROC = new ConnectingConnectedProc();
 
@@ -387,6 +444,18 @@ public class NexecClient {
         return mOperations.xDraw(mSessionId);
     }
 
+    public void xMotionNotify(int x, int y) {
+        mOperations.xMotionNotify(mSessionId, x, y);
+    }
+
+    public void xLeftButtonRelease() {
+        mOperations.xLeftButtonRelease(mSessionId);
+    }
+
+    public void xLeftButtonPress() {
+        mOperations.xLeftButtonPress(mSessionId);
+    }
+
     private String getClassName(String name) {
         return String.format("%s.%s", PACKAGE, name);
     }
@@ -423,7 +492,7 @@ public class NexecClient {
 
     private void changeStateToDisconnected() {
         mSessionId = SessionId.NULL;
-        mOperations = NOP;
+        mOperations = NOP_OPERATIONS;
     }
 
     private void unbind() {
