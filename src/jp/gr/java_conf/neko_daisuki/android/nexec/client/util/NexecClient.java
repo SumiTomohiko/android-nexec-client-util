@@ -307,7 +307,7 @@ public class NexecClient {
 
         @Override
         public Bitmap doXDraw(SessionId sessionId) throws RemoteException {
-            return null;
+            return Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888);
         }
 
         @Override
