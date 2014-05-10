@@ -267,12 +267,32 @@ public class NexecClient {
             }
         }
 
+        public void xRightButtonRelease(SessionId sessionId) {
+            try {
+                doXRightButtonRelease(sessionId);
+            }
+            catch (RemoteException e) {
+                mOnErrorListener.onError(NexecClient.this, e);
+            }
+        }
+
+        public void xRightButtonPress(SessionId sessionId) {
+            try {
+                doXRightButtonPress(sessionId);
+            }
+            catch (RemoteException e) {
+                mOnErrorListener.onError(NexecClient.this, e);
+            }
+        }
+
         public abstract void doDisconnect(SessionId sessionId) throws RemoteException;
         public abstract void doQuit(SessionId sessionId) throws RemoteException;
         public abstract Bitmap doXDraw(SessionId sessionId) throws RemoteException;
         public abstract void doXLeftButtonPress(SessionId sessionId) throws RemoteException;
         public abstract void doXLeftButtonRelease(SessionId sessionId) throws RemoteException;
         public abstract void doXMotionNotify(SessionId sessionId, int x, int y) throws RemoteException;
+        public abstract void doXRightButtonPress(SessionId sessionId) throws RemoteException;
+        public abstract void doXRightButtonRelease(SessionId sessionId) throws RemoteException;
     }
 
     private class NopOperations extends Operations {
@@ -300,6 +320,14 @@ public class NexecClient {
 
         @Override
         public void doXLeftButtonRelease(SessionId sessionId) throws RemoteException {
+        }
+
+        @Override
+        public void doXRightButtonPress(SessionId sessionId) throws RemoteException {
+        }
+
+        @Override
+        public void doXRightButtonRelease(SessionId sessionId) throws RemoteException {
         }
     }
 
@@ -335,6 +363,16 @@ public class NexecClient {
         @Override
         public void doXLeftButtonRelease(SessionId sessionId) throws RemoteException {
             mService.xLeftButtonRelease(sessionId);
+        }
+
+        @Override
+        public void doXRightButtonPress(SessionId sessionId) throws RemoteException {
+            mService.xRightButtonPress(sessionId);
+        }
+
+        @Override
+        public void doXRightButtonRelease(SessionId sessionId) throws RemoteException {
+            mService.xRightButtonRelease(sessionId);
         }
     }
 
@@ -454,6 +492,14 @@ public class NexecClient {
 
     public void xLeftButtonPress() {
         mOperations.xLeftButtonPress(mSessionId);
+    }
+
+    public void xRightButtonRelease() {
+        mOperations.xRightButtonRelease(mSessionId);
+    }
+
+    public void xRightButtonPress() {
+        mOperations.xRightButtonPress(mSessionId);
     }
 
     private String getClassName(String name) {
