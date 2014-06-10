@@ -75,11 +75,17 @@ public class NexecClient {
             @Override
             public void onError(NexecClient nexecClient, Throwable e) {
             }
+
+            @Override
+            public void onServiceError(NexecClient nexecClient,
+                                       String message) {
+            }
         }
 
         public static final OnErrorListener NOP = new Nop();
 
         public void onError(NexecClient nexecClient, Throwable e);
+        public void onServiceError(NexecClient nexecClient, String message);
     }
 
     public interface OnStdoutListener {
@@ -159,6 +165,11 @@ public class NexecClient {
         @Override
         public void xInvalidate(int left, int top, int right, int bottom) throws RemoteException {
             mOnXInvalidateListener.onInvalidate(left, top, right, bottom);
+        }
+
+        @Override
+        public void error(String message) throws RemoteException {
+            mOnErrorListener.onServiceError(NexecClient.this, message);
         }
     }
 
