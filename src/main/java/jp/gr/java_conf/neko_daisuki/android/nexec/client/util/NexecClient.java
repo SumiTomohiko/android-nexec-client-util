@@ -215,6 +215,7 @@ public class NexecClient {
             Log.i(LOG_TAG, "Connected with the service.");
         }
 
+        @Override
         public void onServiceDisconnected(ComponentName className) {
             mService = null;
             changeStateToDisconnected();
