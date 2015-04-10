@@ -218,6 +218,7 @@ public class NexecClient {
         public void onServiceDisconnected(ComponentName className) {
             mService = null;
             changeStateToDisconnected();
+            Log.i(LOG_TAG, "Disconnected from the service.");
         }
     }
 
