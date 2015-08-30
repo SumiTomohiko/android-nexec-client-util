@@ -48,6 +48,7 @@ public class NexecClient {
         public int port = 57005;
         public String[] args;
         public String[] files;
+        public boolean x;
         public int xWidth;
         public int xHeight;
 
@@ -453,6 +454,7 @@ public class NexecClient {
         intent.putExtra("ENV", encodeEnvironment(settings.environment));
         intent.putExtra("FILES", settings.files);
         intent.putExtra("LINKS", encodeLinks(settings.links));
+        intent.putExtra("X", settings.x);
         intent.putExtra("X_WIDTH", settings.xWidth);
         intent.putExtra("X_HEIGHT", settings.xHeight);
         mActivity.startActivityForResult(intent, requestCode);
