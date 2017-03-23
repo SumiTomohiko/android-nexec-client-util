@@ -33,12 +33,12 @@ public class NexecClient {
             }
         }
 
-        private static class Link {
+        private static class FileMap {
 
             private String dest;
             private String src;
 
-            public Link(String dest, String src) {
+            public FileMap(String dest, String src) {
                 this.dest = dest;
                 this.src = src;
             }
@@ -53,15 +53,15 @@ public class NexecClient {
         public int xHeight;
 
         private List<Pair> environment;
-        private List<Link> links;
+        private List<FileMap> fileMap;
 
         public Settings() {
             environment = new ArrayList<Pair>();
-            links = new ArrayList<Link>();
+            fileMap = new ArrayList<FileMap>();
         }
 
         public void addLink(String dest, String src) {
-            links.add(new Link(dest, src));
+            fileMap.add(new FileMap(dest, src));
         }
 
         public void addEnvironment(String name, String value) {
@@ -453,7 +453,7 @@ public class NexecClient {
         intent.putExtra("ARGS", settings.args);
         intent.putExtra("ENV", encodeEnvironment(settings.environment));
         intent.putExtra("FILES", settings.files);
-        intent.putExtra("LINKS", encodeLinks(settings.links));
+        intent.putExtra("FILE_MAP", encodeFileMap(settings.fileMap));
         intent.putExtra("X", settings.x);
         intent.putExtra("X_WIDTH", settings.xWidth);
         intent.putExtra("X_HEIGHT", settings.xHeight);
@@ -529,10 +529,10 @@ public class NexecClient {
         return l.toArray(new String[0]);
     }
 
-    private String[] encodeLinks(List<Settings.Link> links) {
+    private String[] encodeFileMap(List<Settings.FileMap> fileMap) {
         List<String> l = new LinkedList<String>();
-        for (Settings.Link link: links) {
-            l.add(encodePair(link.dest, link.src));
+        for (Settings.FileMap entry: fileMap) {
+            l.add(encodePair(entry.dest, entry.src));
         }
         return l.toArray(new String[0]);
     }
